@@ -3,6 +3,7 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent.*
 
 plugins {
      kotlin("jvm") version "2.0.0"
+    `java-test-fixtures`
 }
 
 kotlin {
@@ -21,6 +22,9 @@ apply(plugin = "idea")
 
 
 dependencies {
+    implementation(platform("dev.forkhandles:forkhandles-bom:_"))
+    implementation("dev.forkhandles:result4k")
+
     testApi(Kotlin.test)
     testApi(Testing.strikt.core)
 }
