@@ -14,7 +14,7 @@ data class EventStream<ID, E>(
 
     val revision = commited.size
 
-    fun add(vararg events: E) = EventStream(this, commited, pending + events)
+    fun add(vararg events: E) = EventStream(this.id, commited, pending + events)
 
     fun commit() = EventStream(id, all, emptyList())
 

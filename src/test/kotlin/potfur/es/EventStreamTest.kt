@@ -7,8 +7,6 @@ import strikt.assertions.isNotEmpty
 import kotlin.test.Test
 
 
-private data class Event(val id: Int)
-
 class EventStreamTest {
 
     @Test
@@ -22,7 +20,7 @@ class EventStreamTest {
 
     @Test
     fun `re-opened event stream contains commited events`() {
-        val stream = EventStream.open<String, Event>("ID", listOf(Event(1), Event(2)))
+        val stream = EventStream.open("ID", listOf(Event(1), Event(2)))
 
         expectThat(stream).isNotEmpty()
         expectThat(stream.commited).isNotEmpty()
