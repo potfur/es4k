@@ -1,6 +1,7 @@
 package potfur.es
 
 import strikt.api.expectThat
+import strikt.api.expectThrows
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotEmpty
@@ -53,5 +54,35 @@ class EventStreamTest {
             .commit()
 
         expectThat(stream.revision).isEqualTo(stream.commited.size)
+    }
+
+    @Test
+    fun `adding single event add it to pending list, just like stream would be a list`() {
+        val stream = EventStream.create<String, Event>("ID") + Event(1)
+
+        expectThat(stream.commited).isEmpty()
+        expectThat(stream.pending).isNotEmpty()
+    }
+
+    @Test
+    fun `adding list of events adds them to pending list, just like stream would be a list`() {
+        val stream = EventStream.create<String, Event>("ID") + listOf(Event(1), Event(2))
+
+        expectThat(stream.commited).isEmpty()
+        expectThat(stream.pending).isNotEmpty()
+    }
+
+    @Test
+    fun `removing single event is forbidden`() {
+        expectThrows<NotImplementedError> {
+            EventStream.create<String, Event>("ID") - Event(1)
+        }
+    }
+
+    @Test
+    fun `removing list of events is forbidden`() {
+        expectThrows<NotImplementedError> {
+            EventStream.create<String, Event>("ID") - listOf(Event(1))
+        }
     }
 }

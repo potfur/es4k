@@ -14,7 +14,9 @@ data class EventStream<ID, E>(
 
     val revision = commited.size
 
-    fun add(vararg events: E) = EventStream(this.id, commited, pending + events)
+    fun add(vararg events: E) = add(events.toList())
+
+    fun add(events: List<E>) = EventStream(this.id, commited, pending + events)
 
     fun commit() = EventStream(id, all, emptyList())
 
@@ -39,4 +41,12 @@ data class EventStream<ID, E>(
     override fun containsAll(elements: Collection<E>) = all.containsAll(elements)
 
     override fun contains(element: E) = all.contains(element)
+
+    operator fun plus(element: E) = add(element)
+
+    operator fun plus(element: List<E>) = add(element)
+
+    operator fun minus(element: E): Nothing = throw NotImplementedError("Event stream is additive only")
+
+    operator fun minus(element: List<E>): Nothing = throw NotImplementedError("Event stream is additive only")
 }
