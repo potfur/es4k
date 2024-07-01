@@ -12,8 +12,15 @@ interface Persistence<ID, T> {
     fun revision(id: ID): Result4k<Int, Exception>
 }
 
+open class EventStoreError(override val message: String, override val cause: Throwable? = null) :
+    Exception(message, cause)
+
 class RevisionMismatch(id: String, expected: Number, actual: Number) :
-    Exception("Revision mismatch for stream $id, expected $expected, got $actual")
+    EventStoreError("Revision mismatch for stream $id, expected $expected, got $actual")
+
+class StreamNotFound(id: String) :
+    EventStoreError("Stream with id $id not found")
+
 
 class EventStoreWithRevisionCheck<ID, T>(
     private val persistence: Persistence<ID, T>,

@@ -10,7 +10,7 @@ class InMemoryPersistence<ID, T>(vararg streams: Pair<ID, List<T>>) : Persistenc
     private val map = streams.toMap().toMutableMap()
 
     override fun read(id: ID) =
-        map[id]?.let { Success(it) } ?: Failure(RuntimeException("Stream not found"))
+        map[id]?.let { Success(it) } ?: Failure(StreamNotFound("Stream not found"))
 
     override fun store(id: ID, events: List<T>) =
         Success(Unit).also { map[id] = events }

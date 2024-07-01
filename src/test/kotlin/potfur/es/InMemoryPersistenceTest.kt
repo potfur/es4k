@@ -27,7 +27,7 @@ class InMemoryPersistenceTest {
     fun `returns failure when stream for given id does not exist`() {
         val result = persistence.read("0")
 
-        expectThat(result).isA<Failure<Exception>>()
+        expectThat(result).isA<Failure<StreamNotFound>>()
     }
 
     @Test
