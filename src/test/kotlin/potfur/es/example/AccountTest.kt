@@ -1,7 +1,5 @@
 package potfur.es.example
 
-import dev.forkhandles.result4k.Failure
-import dev.forkhandles.result4k.Success
 import dev.forkhandles.result4k.flatMap
 import potfur.es.example.domain.Account
 import potfur.es.example.domain.AccountClosed
@@ -14,10 +12,10 @@ import potfur.es.example.domain.NoBlockage
 import potfur.es.example.domain.NotEnoughMoney
 import potfur.es.example.domain.Operation
 import potfur.es.example.domain.PendingBlockages
-import strikt.api.Assertion
+import potfur.es.isFailureOf
+import potfur.es.isSuccessOf
 import strikt.api.expectThat
 import strikt.assertions.contains
-import strikt.assertions.isA
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isTrue
@@ -202,9 +200,3 @@ class AccountTest {
         expectThat(result).isFailureOf<AccountClosed>()
     }
 }
-
-private inline fun <reified E> Assertion.Builder<*>.isSuccessOf() =
-    isA<Success<E>>().and { get { value }.isA<E>() }
-
-private inline fun <reified E> Assertion.Builder<*>.isFailureOf() =
-    isA<Failure<E>>().and { get { reason }.isA<E>() }
