@@ -3,6 +3,7 @@ package potfur.es.example.domain
 import dev.forkhandles.result4k.Failure
 import dev.forkhandles.result4k.Result4k
 import dev.forkhandles.result4k.Success
+import dev.forkhandles.result4k.flatMap
 import dev.forkhandles.result4k.map
 import potfur.es.EventStream
 import potfur.es.example.domain.AccountEvent.Blocked
@@ -47,33 +48,40 @@ class Account(val stream: AccountEventStream) {
     }
 
     fun deposit(amount: Amount) = whenOpen {
-        Success(it + Deposited(amount))
+        Success(stream + Deposited(amount))
     }
 
     fun withdraw(amount: Amount) = whenOpen {
         if (balance < amount) Failure(NotEnoughMoney())
-        else Success(it + Withdrawn(amount))
+        else Success(stream + Withdrawn(amount))
+    }
+
+    fun withdraw(operation: Operation) = whenOpen {
+        blockages.singleOrNull { it.operation == operation }
+            ?.let { withdraw(it.amount) }
+            ?.flatMap { it.unblock(operation) }
+            ?.map { it.stream }
+            ?: Failure(NoBlockage())
     }
 
     fun block(amount: Amount, operation: Operation) = whenOpen {
         if (balance < amount) Failure(NotEnoughMoney())
-        else if (blockages.contains(operation)) Failure(AlreadyBlocked())
-        else Success(it + Blocked(amount, operation))
+        else if (blockages.any { it.operation == operation }) Failure(AlreadyBlocked())
+        else Success(stream + Blocked(amount, operation))
     }
 
     fun unblock(operation: Operation) = whenOpen {
-        if (blockages.contains(operation)) Success(it + Unblocked(operation))
+        if (blockages.any { it.operation == operation }) Success(stream + Unblocked(operation))
         else Failure(NoBlockage())
     }
 
     fun close() = whenOpen {
         if(blockages.isNotEmpty()) Failure(PendingBlockages())
-        else Success(it + AccountEvent.Closed())
+        else Success(stream + AccountEvent.Closed())
     }
 
-    private fun whenOpen(fn: Account.(AccountEventStream) -> Result4k<AccountEventStream, Exception>) =
+    private fun whenOpen(fn: Account.() -> Result4k<AccountEventStream, Exception>) =
         if (stream.lastOrNull { it is AccountEvent.Closed } != null) Failure(AccountClosed())
-        else fn(this, stream).map { Account(it) }
+        else fn(this).map { Account(it) }
 
-    private fun Set<Blocked>.contains(element: Operation) = map { it.operation }.contains(element)
 }

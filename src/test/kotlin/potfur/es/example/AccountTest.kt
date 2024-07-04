@@ -153,6 +153,28 @@ class AccountTest {
     }
 
     @Test
+    fun `blocked money can be withdrawn`() {
+        val result = Account.open(iban)
+            .flatMap { it.deposit(Amount(1000)) }
+            .flatMap { it.block(Amount(1000), Operation("because")) }
+            .flatMap { it.withdraw(Operation("because")) }
+
+        expectThat(result).isSuccessOf<Account>()
+            .and { get { value.stream.any { it is AccountEvent.Blocked } }.isTrue() }
+            .and { get { value.balance }.isEqualTo(Balance(0)) }
+            .and { get { value.blockages }.isEmpty() }
+    }
+
+    @Test
+    fun `withdrawing blocked money removes blockage`() {
+        val result = Account.open(iban)
+            .flatMap { it.deposit(Amount(1000)) }
+            .flatMap { it.withdraw(Operation("because")) }
+
+        expectThat(result).isFailureOf<NoBlockage>()
+    }
+
+    @Test
     fun `closing is not possible when there is blockage`() {
         val result = Account.open(iban)
             .flatMap { it.deposit(Amount(500)) }
