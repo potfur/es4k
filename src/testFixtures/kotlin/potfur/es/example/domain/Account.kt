@@ -3,7 +3,6 @@ package potfur.es.example.domain
 import dev.forkhandles.result4k.Failure
 import dev.forkhandles.result4k.Result4k
 import dev.forkhandles.result4k.Success
-import dev.forkhandles.result4k.flatMap
 import dev.forkhandles.result4k.map
 import potfur.es.EventStream
 import potfur.es.example.domain.AccountEvent.Blocked
@@ -58,9 +57,7 @@ class Account(val stream: AccountEventStream) {
 
     fun withdraw(operation: Operation) = whenOpen {
         blockages.singleOrNull { it.operation == operation }
-            ?.let { withdraw(it.amount) }
-            ?.flatMap { it.unblock(operation) }
-            ?.map { it.stream }
+            ?.let { Success(stream + Withdrawn(it.amount) + Unblocked(it.operation)) }
             ?: Failure(NoBlockage())
     }
 
@@ -76,12 +73,13 @@ class Account(val stream: AccountEventStream) {
     }
 
     fun close() = whenOpen {
-        if(blockages.isNotEmpty()) Failure(PendingBlockages())
+        if (blockages.isNotEmpty()) Failure(PendingBlockages())
         else Success(stream + AccountEvent.Closed())
     }
 
     private fun whenOpen(fn: Account.() -> Result4k<AccountEventStream, Exception>) =
-        if (stream.lastOrNull { it is AccountEvent.Closed } != null) Failure(AccountClosed())
-        else fn(this).map { Account(it) }
+        stream.lastOrNull { it is AccountEvent.Closed }
+            ?.let { Failure(AccountClosed()) }
+            ?: fn(this).map { Account(it) }
 
 }
