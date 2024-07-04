@@ -72,3 +72,19 @@ In this approach instead of storing revision explicitly, the implementation coun
 It may be more suitable for NoSQL systems, where the stream may be stored as a single document with a list of events,
 thus fetching revision would be just fetching the size of such a list.
 
+## Example
+
+In [testFixtures](./src/testFixtures/kotlin/potfur/es/example) there is example implementation of typical event sourced problem - bank account.
+
+The tests with behaviour specification are located in [tests](./src/test/kotlin/potfur/es/example)
+
+### Account
+Is the entity that uses event stream to track its state, 
+it exposes several basic operations that result in append events to stream and return new instance.
+
+### Transfer
+Sample operation that transfers money between two account - thus blocking resources on source, 
+depositing on target and releasing blockade when deposit and withdraw worked.
+
+### Projection
+Example also includes simple implementation of Account projection, to showcase possible usages.
