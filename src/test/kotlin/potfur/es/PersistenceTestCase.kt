@@ -16,7 +16,7 @@ abstract class PersistenceTestCase {
     @Test
     fun `returns events for given stream id`() {
         val result = persistence
-            .store(UUID(1,1), listOf(Event(1), Event(2)))
+            .store(UUID(1,1), 0, listOf(Event(1), Event(2)))
             .flatMap { persistence.read(UUID(1,1)) }
 
         expectThat(result).isSuccess<List<Event>>()
@@ -33,7 +33,7 @@ abstract class PersistenceTestCase {
     @Test
     fun `returns revision number for stream`() {
         val result = persistence
-            .store(UUID(2,2), listOf(Event(1), Event(2)))
+            .store(UUID(2,2), 0, listOf(Event(1), Event(2)))
             .flatMap { persistence.revision(UUID(2,2)) }
 
         expectThat(result).isSuccess<Int>()

@@ -8,7 +8,7 @@ import dev.forkhandles.result4k.map
 
 interface Persistence<ID, T> {
     fun read(id: ID): Result4k<List<T>, Exception>
-    fun store(id: ID, events: List<T>): Result4k<Unit, Exception>
+    fun store(id: ID, revision: Int, events: List<T>): Result4k<Unit, Exception>
     fun revision(id: ID): Result4k<Int, Exception>
 }
 
@@ -34,6 +34,6 @@ class EventStoreWithRevisionCheck<ID, T>(
                 if (it == stream.revision) Success(stream)
                 else Failure(RevisionMismatch(stream.id.toString(), it, stream.revision))
             }
-            .flatMap { persistence.store(stream.id, stream.pending).map { stream.commit() } }
+            .flatMap { persistence.store(stream.id, stream.revision, stream.pending).map { stream.commit() } }
             .map { EventStream(stream.id, stream.all, emptyList()) }
 }

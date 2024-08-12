@@ -15,7 +15,7 @@ class EventStoreWithRevisionCheckTest {
     @Test
     fun `fetches stream from event store`() {
         val result = persistence
-            .store("1", listOf(Event(1), Event(2)))
+            .store("1", 0, listOf(Event(1), Event(2)))
             .flatMap { eventStore.fetch("1") }
 
         expectThat(result).isSuccess<EventStream<String, Event>>()
