@@ -15,7 +15,7 @@ class EventStoreWithRevisionCheckTest {
     @Test
     fun `fetches stream from event store`() {
         val result = persistence
-            .store("1", 0, listOf(Event(1), Event(2)))
+            .store("1", 0, listOf(Event(), Event()))
             .flatMap { eventStore.fetch("1") }
 
         expectThat(result).isSuccess<EventStream<String, Event>>()
@@ -25,7 +25,7 @@ class EventStoreWithRevisionCheckTest {
     @Test
     fun `stores pending events in event store`() {
         val stream = EventStream.create<String, Event>("1")
-            .add(Event(1), Event(2))
+            .add(Event(), Event())
 
         val result = eventStore
             .store(stream)
@@ -38,7 +38,7 @@ class EventStoreWithRevisionCheckTest {
     @Test
     fun `storing stream commits all pending events`() {
         val stream = EventStream.create<String, Event>("1")
-            .add(Event(1), Event(2))
+            .add(Event(), Event())
 
         val result = eventStore
             .store(stream)
@@ -50,7 +50,7 @@ class EventStoreWithRevisionCheckTest {
 
     @Test
     fun `throws error on revision mismatch`() {
-        val stream = EventStream.open("1", listOf(Event(1), Event(2)))
+        val stream = EventStream.open("1", listOf(Event(), Event()))
 
         val result = eventStore
             .store(stream)

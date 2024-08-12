@@ -10,14 +10,14 @@ import kotlin.test.Test
 
 
 abstract class PersistenceTestCase {
-
+    val streamId = UUID.randomUUID()
     abstract val persistence: Persistence<UUID, Event>
 
     @Test
     fun `returns events for given stream id`() {
         val result = persistence
-            .store(UUID(1,1), 0, listOf(Event(1), Event(2)))
-            .flatMap { persistence.read(UUID(1,1)) }
+            .store(streamId, 0, listOf(Event(), Event()))
+            .flatMap { persistence.read(streamId) }
 
         expectThat(result).isSuccess<List<Event>>()
             .and { get { value.size }.isEqualTo(2) }
@@ -25,7 +25,7 @@ abstract class PersistenceTestCase {
 
     @Test
     fun `returns failure when stream for given id does not exist`() {
-        val result = persistence.read(UUID(0,0))
+        val result = persistence.read(streamId)
 
         expectThat(result).isFailure<StreamNotFound>()
     }
@@ -33,8 +33,8 @@ abstract class PersistenceTestCase {
     @Test
     fun `returns revision number for stream`() {
         val result = persistence
-            .store(UUID(2,2), 0, listOf(Event(1), Event(2)))
-            .flatMap { persistence.revision(UUID(2,2)) }
+            .store(streamId, 0, listOf(Event(), Event()))
+            .flatMap { persistence.revision(streamId) }
 
         expectThat(result).isSuccess<Int>()
             .and { get { value }.isEqualTo(2) }
@@ -42,7 +42,7 @@ abstract class PersistenceTestCase {
 
     @Test
     fun `returns revision equal to 0 for non existing stream`() {
-        val result = persistence.revision(UUID(0,0))
+        val result = persistence.revision(streamId)
 
         expectThat(result).isSuccess<Int>()
             .and { get { value }.isEqualTo(0) }
