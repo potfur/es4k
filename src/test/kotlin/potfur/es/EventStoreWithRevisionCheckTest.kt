@@ -1,10 +1,9 @@
 package potfur.es
 
-import dev.forkhandles.result4k.Failure
-import dev.forkhandles.result4k.Success
 import dev.forkhandles.result4k.flatMap
+import dev.forkhandles.result4k.strikt.isFailure
+import dev.forkhandles.result4k.strikt.isSuccess
 import strikt.api.expectThat
-import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import kotlin.test.Test
 
@@ -19,7 +18,7 @@ class EventStoreWithRevisionCheckTest {
             .store("1", listOf(Event(1), Event(2)))
             .flatMap { eventStore.fetch("1") }
 
-        expectThat(result).isA<Success<EventStream<String, Event>>>()
+        expectThat(result).isSuccess<EventStream<String, Event>>()
             .and { get { value.revision }.isEqualTo(2) }
     }
 
@@ -32,7 +31,7 @@ class EventStoreWithRevisionCheckTest {
             .store(stream)
             .flatMap { persistence.read("1") }
 
-        expectThat(result).isA<Success<List<Event>>>()
+        expectThat(result).isSuccess<List<Event>>()
             .and { get { value.size }.isEqualTo(2) }
     }
 
@@ -44,7 +43,7 @@ class EventStoreWithRevisionCheckTest {
         val result = eventStore
             .store(stream)
 
-        expectThat(result).isA<Success<EventStream<String, Event>>>()
+        expectThat(result).isSuccess<EventStream<String, Event>>()
             .and { get { value.commited.size }.isEqualTo(2) }
             .and { get { value.pending.size }.isEqualTo(0) }
     }
@@ -56,6 +55,6 @@ class EventStoreWithRevisionCheckTest {
         val result = eventStore
             .store(stream)
 
-        expectThat(result).isA<Failure<RevisionMismatch>>()
+        expectThat(result).isFailure<RevisionMismatch>()
     }
 }

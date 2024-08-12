@@ -2,7 +2,7 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 import org.gradle.api.tasks.testing.logging.TestLogEvent.*
 
 plugins {
-     kotlin("jvm") version "2.0.0"
+     kotlin("jvm") version "_"
     `java-test-fixtures`
 }
 
@@ -25,8 +25,9 @@ dependencies {
     implementation(platform("dev.forkhandles:forkhandles-bom:_"))
     implementation("dev.forkhandles:result4k")
 
-    testApi(Kotlin.test)
-    testApi(Testing.strikt.core)
+    testImplementation(Kotlin.test)
+    testImplementation(Testing.strikt.core)
+    testImplementation("dev.forkhandles:result4k-strikt")
 }
 
 tasks {

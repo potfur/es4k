@@ -2,6 +2,7 @@ package potfur.es.example
 
 import dev.forkhandles.result4k.flatMap
 import dev.forkhandles.result4k.orThrow
+import dev.forkhandles.result4k.strikt.isSuccess
 import potfur.es.example.domain.Account
 import potfur.es.example.domain.AccountEventStream
 import potfur.es.example.domain.IBAN
@@ -9,7 +10,6 @@ import potfur.es.example.domain.MonetaryValue.Amount
 import potfur.es.example.domain.MonetaryValue.Balance
 import potfur.es.example.domain.Operation
 import potfur.es.example.domain.Transfer
-import potfur.es.isSuccessOf
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import kotlin.test.Test
@@ -26,7 +26,7 @@ class TransferTest {
     fun `transfers money between accounts`() {
         val result = Transfer(source, target, amount, operation)
 
-        expectThat(result).isSuccessOf<Pair<Account, Account>>()
+        expectThat(result).isSuccess<Pair<Account, Account>>()
             .and { get { value.first.balance }.isEqualTo(Balance(500)) }
             .and { get { value.second.balance }.isEqualTo(Balance(500)) }
     }
@@ -35,12 +35,14 @@ class TransferTest {
     fun `transfer blocks money before withdraw`() {
         val result = Transfer(source, target, amount, operation)
 
-        expectThat(result).isSuccessOf<Pair<Account, Account>>()
+        expectThat(result).isSuccess<Pair<Account, Account>>()
             .and {
-                get { value.first.stream.names }.isEqualTo(listOf("Opened", "Deposited", "Blocked", "Withdrawn", "Unblocked"))
+                get { value.first.stream.names }
+                    .isEqualTo(listOf("Opened", "Deposited", "Blocked", "Withdrawn", "Unblocked"))
             }
             .and {
-                get { value.second.stream.names }.isEqualTo(listOf("Opened", "Deposited"))
+                get { value.second.stream.names }
+                    .isEqualTo(listOf("Opened", "Deposited"))
             }
     }
 

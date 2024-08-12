@@ -1,10 +1,9 @@
 package potfur.es
 
-import dev.forkhandles.result4k.Failure
-import dev.forkhandles.result4k.Success
 import dev.forkhandles.result4k.flatMap
+import dev.forkhandles.result4k.strikt.isFailure
+import dev.forkhandles.result4k.strikt.isSuccess
 import strikt.api.expectThat
-import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import kotlin.test.Test
 
@@ -19,7 +18,7 @@ class InMemoryPersistenceTest {
             .store("1", listOf(Event(1), Event(2)))
             .flatMap { persistence.read("1") }
 
-        expectThat(result).isA<Success<List<Event>>>()
+        expectThat(result).isSuccess<List<Event>>()
             .and { get { value.size }.isEqualTo(2) }
     }
 
@@ -27,7 +26,7 @@ class InMemoryPersistenceTest {
     fun `returns failure when stream for given id does not exist`() {
         val result = persistence.read("0")
 
-        expectThat(result).isA<Failure<StreamNotFound>>()
+        expectThat(result).isFailure<StreamNotFound>()
     }
 
     @Test
@@ -36,7 +35,7 @@ class InMemoryPersistenceTest {
             .store("2", listOf(Event(1), Event(2)))
             .flatMap { persistence.revision("2") }
 
-        expectThat(result).isA<Success<Int>>()
+        expectThat(result).isSuccess<Int>()
             .and { get { value }.isEqualTo(2) }
     }
 
@@ -44,7 +43,7 @@ class InMemoryPersistenceTest {
     fun `returns revision equal to 0 for non existing stream`() {
         val result = persistence.revision("0")
 
-        expectThat(result).isA<Success<Int>>()
+        expectThat(result).isSuccess<Int>()
             .and { get { value }.isEqualTo(0) }
     }
 

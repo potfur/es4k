@@ -1,6 +1,8 @@
 package potfur.es.example
 
 import dev.forkhandles.result4k.flatMap
+import dev.forkhandles.result4k.strikt.isFailure
+import dev.forkhandles.result4k.strikt.isSuccess
 import potfur.es.example.domain.Account
 import potfur.es.example.domain.AccountClosed
 import potfur.es.example.domain.AccountEvent
@@ -12,8 +14,6 @@ import potfur.es.example.domain.NoBlockage
 import potfur.es.example.domain.NotEnoughMoney
 import potfur.es.example.domain.Operation
 import potfur.es.example.domain.PendingBlockages
-import potfur.es.isFailureOf
-import potfur.es.isSuccessOf
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.isEmpty
@@ -28,7 +28,7 @@ class AccountTest {
     fun `opened account has balance equal to 0`() {
         val result = Account.open(iban)
 
-        expectThat(result).isSuccessOf<Account>()
+        expectThat(result).isSuccess<Account>()
             .and { get { value.balance }.isEqualTo(Balance(0)) }
     }
 
@@ -37,7 +37,7 @@ class AccountTest {
         val result = Account.open(iban)
             .flatMap { it.deposit(Amount(1000)) }
 
-        expectThat(result).isSuccessOf<Account>()
+        expectThat(result).isSuccess<Account>()
             .and { get { value.stream.any { it is AccountEvent.Deposited } }.isTrue() }
             .and { get { value.balance }.isEqualTo(Balance(1000)) }
     }
@@ -47,7 +47,7 @@ class AccountTest {
         val result = Account.open(iban)
             .flatMap { it.withdraw(Amount(1000)) }
 
-        expectThat(result).isFailureOf<NotEnoughMoney>()
+        expectThat(result).isFailure<NotEnoughMoney>()
     }
 
     @Test
@@ -56,7 +56,7 @@ class AccountTest {
             .flatMap { it.deposit(Amount(1000)) }
             .flatMap { it.withdraw(Amount(1000)) }
 
-        expectThat(result).isSuccessOf<Account>()
+        expectThat(result).isSuccess<Account>()
             .and { get { value.stream.any { it is AccountEvent.Withdrawn } }.isTrue() }
             .and { get { value.balance }.isEqualTo(Balance(0)) }
     }
@@ -67,7 +67,7 @@ class AccountTest {
             .flatMap { it.deposit(Amount(2000)) }
             .flatMap { it.withdraw(Amount(1000)) }
 
-        expectThat(result).isSuccessOf<Account>()
+        expectThat(result).isSuccess<Account>()
             .and { get { value.stream.any { it is AccountEvent.Withdrawn } }.isTrue() }
             .and { get { value.balance }.isEqualTo(Balance(1000)) }
     }
@@ -79,7 +79,7 @@ class AccountTest {
             .flatMap { it.close() }
             .flatMap { it.block(Amount(500), Operation("because")) }
 
-        expectThat(result).isFailureOf<AccountClosed>()
+        expectThat(result).isFailure<AccountClosed>()
     }
 
     @Test
@@ -87,7 +87,7 @@ class AccountTest {
         val result = Account.open(iban)
             .flatMap { it.block(Amount(500), Operation("because")) }
 
-        expectThat(result).isFailureOf<NotEnoughMoney>()
+        expectThat(result).isFailure<NotEnoughMoney>()
     }
 
     @Test
@@ -96,7 +96,7 @@ class AccountTest {
             .flatMap { it.deposit(Amount(500)) }
             .flatMap { it.block(Amount(500), Operation("because")) }
 
-        expectThat(result).isSuccessOf<Account>()
+        expectThat(result).isSuccess<Account>()
             .and { get { value.stream.any { it is AccountEvent.Blocked } }.isTrue() }
             .and { get { value.blockages.map { it.operation } }.contains(Operation("because")) }
     }
@@ -107,7 +107,7 @@ class AccountTest {
             .flatMap { it.deposit(Amount(1000)) }
             .flatMap { it.block(Amount(500), Operation("because")) }
 
-        expectThat(result).isSuccessOf<Account>()
+        expectThat(result).isSuccess<Account>()
             .and { get { value.stream.any { it is AccountEvent.Blocked } }.isTrue() }
             .and { get { value.blockages.map { it.operation } }.contains(Operation("because")) }
     }
@@ -119,7 +119,7 @@ class AccountTest {
             .flatMap { it.block(Amount(500), Operation("because")) }
             .flatMap { it.block(Amount(500), Operation("because")) }
 
-        expectThat(result).isFailureOf<AlreadyBlocked>()
+        expectThat(result).isFailure<AlreadyBlocked>()
     }
 
     @Test
@@ -127,7 +127,7 @@ class AccountTest {
         val result = Account.open(iban)
             .flatMap { it.unblock(Operation("because")) }
 
-        expectThat(result).isFailureOf<NoBlockage>()
+        expectThat(result).isFailure<NoBlockage>()
     }
 
     @Test
@@ -137,7 +137,7 @@ class AccountTest {
             .flatMap { it.block(Amount(1000), Operation("because")) }
             .flatMap { it.unblock(Operation("because")) }
 
-        expectThat(result).isSuccessOf<Account>()
+        expectThat(result).isSuccess<Account>()
             .and { get { value.stream.any { it is AccountEvent.Blocked } }.isTrue() }
             .and { get { value.blockages }.isEmpty() }
     }
@@ -147,7 +147,7 @@ class AccountTest {
         val result = Account.open(iban)
             .flatMap { it.unblock(Operation("because")) }
 
-        expectThat(result).isFailureOf<NoBlockage>()
+        expectThat(result).isFailure<NoBlockage>()
     }
 
     @Test
@@ -157,7 +157,7 @@ class AccountTest {
             .flatMap { it.block(Amount(1000), Operation("because")) }
             .flatMap { it.withdraw(Operation("because")) }
 
-        expectThat(result).isSuccessOf<Account>()
+        expectThat(result).isSuccess<Account>()
             .and { get { value.stream.any { it is AccountEvent.Blocked } }.isTrue() }
             .and { get { value.balance }.isEqualTo(Balance(0)) }
             .and { get { value.blockages }.isEmpty() }
@@ -169,7 +169,7 @@ class AccountTest {
             .flatMap { it.deposit(Amount(1000)) }
             .flatMap { it.withdraw(Operation("because")) }
 
-        expectThat(result).isFailureOf<NoBlockage>()
+        expectThat(result).isFailure<NoBlockage>()
     }
 
     @Test
@@ -179,7 +179,7 @@ class AccountTest {
             .flatMap { it.block(Amount(500), Operation("because")) }
             .flatMap { it.close() }
 
-        expectThat(result).isFailureOf<PendingBlockages>()
+        expectThat(result).isFailure<PendingBlockages>()
     }
 
     @Test
@@ -188,7 +188,7 @@ class AccountTest {
             .flatMap { it.close() }
             .flatMap { it.deposit(Amount(1000)) }
 
-        expectThat(result).isFailureOf<AccountClosed>()
+        expectThat(result).isFailure<AccountClosed>()
     }
 
     @Test
@@ -197,6 +197,6 @@ class AccountTest {
             .flatMap { it.close() }
             .flatMap { it.withdraw(Amount(1000)) }
 
-        expectThat(result).isFailureOf<AccountClosed>()
+        expectThat(result).isFailure<AccountClosed>()
     }
 }
